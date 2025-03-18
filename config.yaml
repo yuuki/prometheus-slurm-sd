@@ -1,0 +1,26 @@
+# prometheus-slurm-sd Configuration
+
+# Slurm REST API
+slurm_api_endpoint: "http://localhost:6820"
+slurm_api_version: "v0.0.38"
+# slurm_api_username: "username"
+# slurm_api_token: "token"
+
+# Web server
+listen_address: ":8080"
+
+# Update interval
+update_interval: "5m"
+
+# Exporter job configuration
+jobs:
+  - name: node
+    port: 9100
+  - name: dcgm
+    port: 9401
+  - name: process
+    port: 9401
+  - name: ipmi
+    port: 9290
+  - name: lustre
+    port: 9169
