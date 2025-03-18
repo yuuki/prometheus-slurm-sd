@@ -40,7 +40,7 @@ func TestService_updateTargets(t *testing.T) {
 		validateTargets  func(map[string][]PrometheusTarget) bool
 	}{
 		{
-			name: "successful update with multiple partitions",
+			name: "successful update with multiple partitions and states",
 			cfg: &config.Config{
 				UpdateInterval: "5m",
 				Jobs: []config.JobConfig{
@@ -71,6 +71,13 @@ func TestService_updateTargets(t *testing.T) {
 						State:      []string{"DRAIN"},
 						Partitions: []string{"compute"},
 					},
+					{
+						Name:       "node4",
+						Address:    "10.0.0.4",
+						Hostname:   "node4.example.com",
+						State:      []string{"DOWN"},
+						Partitions: []string{"gpu"},
+					},
 				},
 			},
 			mockError:        nil,
@@ -82,12 +89,44 @@ func TestService_updateTargets(t *testing.T) {
 					return false
 				}
 
-				// Check if there's at least one target for node job
-				nodeTargetCount := 0
+				// Check all nodes are included regardless of state
+				// Count nodes in compute partition (should be 3: node1, node2, node3)
+				computeNodeCount := 0
+				// Count drain nodes (should be 1: node3)
+				drainNodeCount := 0
+
 				for _, target := range nodeTargets {
-					nodeTargetCount += len(target.Targets)
+					// Each target now contains a single node
+					if len(target.Targets) != 1 {
+						return false
+					}
+
+					// Check partition label
+					if target.Labels["__meta_slurm_partition"] == "compute" {
+						computeNodeCount++
+					}
+
+					// Check state label
+					if target.Labels["__meta_slurm_state"] == "DRAIN" {
+						drainNodeCount++
+					}
+
+					// Verify correct labels structure
+					if _, ok := target.Labels["__meta_slurm_node"]; !ok {
+						return false
+					}
+					if _, ok := target.Labels["__meta_slurm_job"]; !ok {
+						return false
+					}
+					if _, ok := target.Labels["__meta_slurm_state"]; !ok {
+						return false
+					}
 				}
-				if nodeTargetCount < 2 {
+
+				if computeNodeCount != 3 {
+					return false
+				}
+				if drainNodeCount != 1 {
 					return false
 				}
 
@@ -97,12 +136,16 @@ func TestService_updateTargets(t *testing.T) {
 					return false
 				}
 
-				// Check if there's at least one target for gpu job
-				gpuTargetCount := 0
+				// Check DOWN node is included
+				hasDownNode := false
 				for _, target := range gpuTargets {
-					gpuTargetCount += len(target.Targets)
+					if target.Labels["__meta_slurm_state"] == "DOWN" {
+						hasDownNode = true
+						break
+					}
 				}
-				if gpuTargetCount < 2 {
+
+				if !hasDownNode {
 					return false
 				}
 
@@ -207,6 +250,13 @@ func TestService_HTTPHandler(t *testing.T) {
 						State:      []string{"ALLOCATED"},
 						Partitions: []string{"compute", "gpu"},
 					},
+					{
+						Name:       "node3",
+						Address:    "10.0.0.3",
+						Hostname:   "node3.example.com",
+						State:      []string{"DOWN"},
+						Partitions: []string{"compute"},
+					},
 				},
 			}, nil
 		},
@@ -249,6 +299,16 @@ func TestService_HTTPHandler(t *testing.T) {
 				}
 				for _, target := range targets {
 					if target.Labels["__meta_slurm_job"] != "node" {
+						return false
+					}
+
+					// Check state label exists
+					if _, ok := target.Labels["__meta_slurm_state"]; !ok {
+						return false
+					}
+
+					// Check node label exists
+					if _, ok := target.Labels["__meta_slurm_node"]; !ok {
 						return false
 					}
 				}

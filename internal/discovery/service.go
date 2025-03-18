@@ -82,50 +82,34 @@ func (s *Service) updateTargets(ctx context.Context) error {
 		return fmt.Errorf("failed to get nodes from Slurm: %w", err)
 	}
 
-	// Group nodes by partition
-	partitionNodes := make(map[string][]slurm.Node)
-	for _, node := range nodeInfo.Nodes {
-		for _, partition := range node.Partitions {
-			partitionNodes[partition] = append(partitionNodes[partition], node)
-		}
-	}
-
 	// Generate targets for each job
 	jobTargets := make(map[string][]PrometheusTarget)
 	for _, job := range s.config.Jobs {
 		var targets []PrometheusTarget
 
-		for partition, nodes := range partitionNodes {
-			var nodeTargets []string
-
-			for _, node := range nodes {
-				// Check node status (include only active nodes)
-				isActive := false
-				for _, state := range node.State {
-					if state == "IDLE" || state == "ALLOCATED" || state == "MIXED" {
-						isActive = true
-						break
-					}
-				}
-
-				if isActive {
-					nodeAddress := node.Address
-					if nodeAddress == "" {
-						nodeAddress = node.Hostname
-					}
-
-					// Add port to the target
-					nodeTargets = append(nodeTargets, fmt.Sprintf("%s:%d", nodeAddress, job.Port))
-				}
+		// Process each node
+		for _, node := range nodeInfo.Nodes {
+			// Get node state
+			nodeState := "unknown"
+			if len(node.State) > 0 {
+				nodeState = node.State[0]
 			}
 
-			if len(nodeTargets) > 0 {
-				// Create PrometheusTarget
+			// Get node address
+			nodeAddress := node.Address
+			if nodeAddress == "" {
+				nodeAddress = node.Hostname
+			}
+
+			// Create target for each partition
+			for _, partition := range node.Partitions {
 				target := PrometheusTarget{
-					Targets: nodeTargets,
+					Targets: []string{fmt.Sprintf("%s:%d", nodeAddress, job.Port)},
 					Labels: map[string]string{
 						"__meta_slurm_partition": partition,
 						"__meta_slurm_job":       job.Name,
+						"__meta_slurm_state":     nodeState,
+						"__meta_slurm_node":      node.Name,
 					},
 				}
 				targets = append(targets, target)
