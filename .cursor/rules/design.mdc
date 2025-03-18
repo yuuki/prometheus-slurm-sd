@@ -1,13 +1,13 @@
 ---
 description: Desig documentation
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 # 設計書
 
 `prometheus-slurm-sd` は、HPC向けジョブスケジューラであるSlurmのパーティション構成をPrometheusのサービスディスカバリに対応させるための接続部品です。
 
-prometheus-slurm-sdは、[SlurmのREST API](https://slurm.schedmd.com/rest_api.html) が提供するOpenAPIで定義されたスキーマでのREST APIを呼び出して、Prometheusの[HTTP Service Discovery](mdc:https:/prometheus.io/docs/prometheus/latest/http_sd)機能に対応するHTTP endpointを提供するWebサーバです。
+prometheus-slurm-sdは、[SlurmのREST API](mdc:https:/slurm.schedmd.com/rest_api.html) が提供するOpenAPIで定義されたスキーマでのREST APIを呼び出して、Prometheusの[HTTP Service Discovery](mdc:https:/prometheus.io/docs/prometheus/latest/http_sd)機能に対応するHTTP endpointを提供するWebサーバです。
 
 ## 動作原理
 

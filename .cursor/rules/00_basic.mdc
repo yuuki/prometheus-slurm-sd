@@ -1,7 +1,7 @@
 ---
 description: Basic rule
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 # 基本原則
 
