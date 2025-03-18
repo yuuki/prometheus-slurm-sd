@@ -1,0 +1,22 @@
+.git
+
+# Build outputs
+/build/
+/dist/
+
+# Testing
+/coverage/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Large data files
+*.csv
+*.xlsx
+
+# Built files
+/prometheus-slurm-sd

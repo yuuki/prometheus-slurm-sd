@@ -13,6 +13,11 @@ import (
 	"github.com/yuuki/prometheus-slurm-sd/internal/slurm"
 )
 
+// SlurmClient defines the interface for Slurm client interactions
+type SlurmClient interface {
+	GetNodes(ctx context.Context) (*slurm.NodeInfoResponse, error)
+}
+
 // PrometheusTarget represents a Prometheus service discovery target
 type PrometheusTarget struct {
 	Targets []string          `json:"targets"`
@@ -21,7 +26,7 @@ type PrometheusTarget struct {
 
 // Service is the Prometheus service discovery service
 type Service struct {
-	slurmClient *slurm.Client
+	slurmClient SlurmClient
 	config      *config.Config
 	logger      *slog.Logger
 
@@ -31,7 +36,7 @@ type Service struct {
 }
 
 // NewService creates a new service discovery service
-func NewService(slurmClient *slurm.Client, cfg *config.Config, logger *slog.Logger) (*Service, error) {
+func NewService(slurmClient SlurmClient, cfg *config.Config, logger *slog.Logger) (*Service, error) {
 	updateInterval, err := time.ParseDuration(cfg.UpdateInterval)
 	if err != nil {
 		return nil, fmt.Errorf("invalid update interval: %w", err)

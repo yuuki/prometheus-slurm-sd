@@ -41,6 +41,14 @@ func LoadConfigFromReader(r io.Reader) (*Config, error) {
 	var cfg Config
 	decoder := yaml.NewDecoder(r)
 	if err := decoder.Decode(&cfg); err != nil {
+		// Check for EOF (empty file) and return default config
+		if err == io.EOF {
+			// Set default values for empty config
+			cfg.ListenAddress = ":8080"
+			cfg.SlurmAPIVersion = "v0.0.38"
+			cfg.UpdateInterval = "5m"
+			return &cfg, nil
+		}
 		return nil, fmt.Errorf("failed to decode config: %w", err)
 	}
 
