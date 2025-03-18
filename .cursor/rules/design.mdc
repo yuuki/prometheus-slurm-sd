@@ -1,0 +1,356 @@
+---
+description: Desig documentation
+globs: 
+alwaysApply: false
+---
+# 設計書
+
+`prometheus-slurm-sd` は、HPC向けジョブスケジューラであるSlurmのパーティション構成をPrometheusのサービスディスカバリに対応させるための接続部品です。
+
+prometheus-slurm-sdは、[SlurmのREST API](https://slurm.schedmd.com/rest_api.html) が提供するOpenAPIで定義されたスキーマでのREST APIを呼び出して、Prometheusの[HTTP Service Discovery](mdc:https:/prometheus.io/docs/prometheus/latest/http_sd)機能に対応するHTTP endpointを提供するWebサーバです。
+
+## 動作原理
+
+1. slurmrestdのエンドポイントに対して、定期的（5分間隔など）にSlurmのノード情報を取得する。
+2. ノード情報からPrometheusのHTTP Service Discoveryのリクエストに応答するためのJSONを構築する。
+3. JSONをprometheus-sludm-sdのメモリ上にキャッシュしておく。すでにキャッシュがある場合は置換する。
+4. PrometheusサーバからHTTP Service Discoveryのリクエストが到着したときに、メモリ上のキャッシュを返却する。
+
+## Slurm API
+
+- UNIX SOCKETまたはTCPで接続する。
+	- SlurmがJWT認証を採用している場合、HTTPのヘッダに `X-SLURM-USER-NAME`と`X-SLURM-USER-TOKEN`をCLIから指定可能にする。
+
+ノード情報の取得には、`GET /slurm/v0.0.38/nodes/` を用いる。v0.0.38の部分はバージョン番号であり、CLIから指定可能とする。
+
+### GET /slurm/v0.0.38/nodes/のクエリパラメータ
+
+Query parameters
+update_time (optional)
+Query Parameter — Query jobs updated more recently than this time (UNIX timestamp) default: null
+flags (optional)
+Query Parameter — Query flags default: null
+
+### 応答
+
+Content-Type: application/json
+
+```
+{
+  "nodes" : [ {
+    "reason" : "reason",
+    "gpu_spec" : "gpu_spec",
+    "slurmd_start_time" : {
+      "number" : 2,
+      "set" : true,
+      "infinite" : true
+    },
+    "features" : [ "features", "features" ],
+    "hostname" : "hostname",
+    "cores" : 6,
+    "reason_changed_at" : {
+      "number" : 2,
+      "set" : true,
+      "infinite" : true
+    },
+    "reservation" : "reservation",
+    "tres" : "tres",
+    "cpu_binding" : 5,
+    "state" : [ "INVALID", "INVALID" ],
+    "sockets" : 9,
+    "energy" : {
+      "current_watts" : {
+        "number" : 5,
+        "set" : true,
+        "infinite" : true
+      },
+      "base_consumed_energy" : 3,
+      "last_collected" : 7,
+      "consumed_energy" : 2,
+      "previous_consumed_energy" : 4,
+      "average_watts" : 9
+    },
+    "partitions" : [ "partition01", "partition02" ],
+    "gres_drained" : "gres_drained",
+    "weight" : 8,
+    "version" : "version",
+    "gres_used" : "gres_used",
+    "mcs_label" : "mcs_label",
+    "real_memory" : 1,
+    "instance_id" : "instance_id",
+    "burstbuffer_network_address" : "burstbuffer_network_address",
+    "port" : 1,
+    "name" : "name",
+    "resume_after" : {
+      "number" : 2,
+      "set" : true,
+      "infinite" : true
+    },
+    "temporary_disk" : 6,
+    "tres_used" : "tres_used",
+    "effective_cpus" : 7,
+    "instance_type" : "instance_type",
+    "external_sensors" : "{}",
+    "res_cores_per_gpu" : 6,
+    "boards" : 0,
+    "alloc_cpus" : 1,
+    "active_features" : [ "active_features", "active_features" ],
+    "reason_set_by_user" : "reason_set_by_user",
+    "free_mem" : {
+      "number" : 2,
+      "set" : true,
+      "infinite" : true
+    },
+    "alloc_idle_cpus" : 4,
+    "extra" : "extra",
+    "operating_system" : "operating_system",
+    "power" : "{}",
+    "architecture" : "architecture",
+    "owner" : "owner",
+    "cluster_name" : "cluster_name",
+    "address" : "address",
+    "cpus" : 2,
+    "tres_weighted" : 5.025004791520295,
+    "gres" : "gres",
+    "threads" : 9,
+    "boot_time" : {
+      "number" : 2,
+      "set" : true,
+      "infinite" : true
+    },
+    "alloc_memory" : 7,
+    "specialized_memory" : 1,
+    "specialized_cpus" : "specialized_cpus",
+    "specialized_cores" : 1,
+    "last_busy" : {
+      "number" : 2,
+      "set" : true,
+      "infinite" : true
+    },
+    "comment" : "comment",
+    "next_state_after_reboot" : [ "INVALID", "INVALID" ],
+    "cpu_load" : 5
+  }, {
+    "reason" : "reason",
+    "gpu_spec" : "gpu_spec",
+    "slurmd_start_time" : {
+      "number" : 2,
+      "set" : true,
+      "infinite" : true
+    },
+    "features" : [ "features", "features" ],
+    "hostname" : "hostname",
+    "cores" : 6,
+    "reason_changed_at" : {
+      "number" : 2,
+      "set" : true,
+      "infinite" : true
+    },
+    "reservation" : "reservation",
+    "tres" : "tres",
+    "cpu_binding" : 5,
+    "state" : [ "INVALID", "INVALID" ],
+    "sockets" : 9,
+    "energy" : {
+      "current_watts" : {
+        "number" : 5,
+        "set" : true,
+        "infinite" : true
+      },
+      "base_consumed_energy" : 3,
+      "last_collected" : 7,
+      "consumed_energy" : 2,
+      "previous_consumed_energy" : 4,
+      "average_watts" : 9
+    },
+    "partitions" : [ "partition01", "partition02" ],
+    "gres_drained" : "gres_drained",
+    "weight" : 8,
+    "version" : "version",
+    "gres_used" : "gres_used",
+    "mcs_label" : "mcs_label",
+    "real_memory" : 1,
+    "instance_id" : "instance_id",
+    "burstbuffer_network_address" : "burstbuffer_network_address",
+    "port" : 1,
+    "name" : "name",
+    "resume_after" : {
+      "number" : 2,
+      "set" : true,
+      "infinite" : true
+    },
+    "temporary_disk" : 6,
+    "tres_used" : "tres_used",
+    "effective_cpus" : 7,
+    "instance_type" : "instance_type",
+    "external_sensors" : "{}",
+    "res_cores_per_gpu" : 6,
+    "boards" : 0,
+    "alloc_cpus" : 1,
+    "active_features" : [ "active_features", "active_features" ],
+    "reason_set_by_user" : "reason_set_by_user",
+    "free_mem" : {
+      "number" : 2,
+      "set" : true,
+      "infinite" : true
+    },
+    "alloc_idle_cpus" : 4,
+    "extra" : "extra",
+    "operating_system" : "operating_system",
+    "power" : "{}",
+    "architecture" : "architecture",
+    "owner" : "owner",
+    "cluster_name" : "cluster_name",
+    "address" : "address",
+    "cpus" : 2,
+    "tres_weighted" : 5.025004791520295,
+    "gres" : "gres",
+    "threads" : 9,
+    "boot_time" : {
+      "number" : 2,
+      "set" : true,
+      "infinite" : true
+    },
+    "alloc_memory" : 7,
+    "specialized_memory" : 1,
+    "specialized_cpus" : "specialized_cpus",
+    "specialized_cores" : 1,
+    "last_busy" : {
+      "number" : 2,
+      "set" : true,
+      "infinite" : true
+    },
+    "comment" : "comment",
+    "next_state_after_reboot" : [ "INVALID", "INVALID" ],
+    "cpu_load" : 5
+  } ],
+  "meta" : {
+    "slurm" : {
+      "cluster" : "cluster",
+      "release" : "release",
+      "version" : {
+        "major" : "major",
+        "minor" : "minor",
+        "micro" : "micro"
+      }
+    },
+    "plugin" : {
+      "accounting_storage" : "accounting_storage",
+      "name" : "name",
+      "type" : "type",
+      "data_parser" : "data_parser"
+    },
+    "client" : {
+      "source" : "source",
+      "user" : "user",
+      "group" : "group"
+    },
+    "command" : [ "command", "command" ]
+  },
+  "last_update" : {
+    "number" : 2,
+    "set" : true,
+    "infinite" : true
+  },
+  "warnings" : [ {
+    "description" : "description",
+    "source" : "source"
+  }, {
+    "description" : "description",
+    "source" : "source"
+  } ],
+  "errors" : [ {
+    "description" : "description",
+    "source" : "source",
+    "error" : "error",
+    "error_number" : 0
+  }, {
+    "description" : "description",
+    "source" : "source",
+    "error" : "error",
+    "error_number" : 0
+  } ]
+}
+```
+
+## PrometheusのHTTP Service Discoveryo
+
+### エンドポイントの要件
+
+If you implement an HTTP SD endpoint, here are a few requirements you should be aware of.
+
+The response is consumed as is, unmodified. On each refresh interval (default: 1 minute), Prometheus will perform a GET request to the HTTP SD endpoint. The GET request contains a X-Prometheus-Refresh-Interval-Seconds HTTP header with the refresh interval.
+
+The SD endpoint must answer with an HTTP 200 response, with the HTTP Header Content-Type: application/json. The answer must be UTF-8 formatted. If no targets should be transmitted, HTTP 200 must also be emitted, with an empty list []. Target lists are unordered.
+
+Prometheus caches target lists. If an error occurs while fetching an updated targets list, Prometheus keeps using the current targets list. The targets list is not saved across restart. The prometheus_sd_http_failures_total counter metric tracks the number of refresh failures.
+
+The whole list of targets must be returned on every scrape. There is no support for incremental updates. A Prometheus instance does not send its hostname and it is not possible for a SD endpoint to know if the SD requests is the first one after a restart or not.
+
+The URL to the HTTP SD is not considered secret. The authentication and any API keys should be passed with the appropriate authentication mechanisms. Prometheus supports TLS authentication, basic authentication, OAuth2, and authorization headers.
+
+### HTTP SD Format
+
+```
+[
+  {
+    "targets": [ "<host>", ... ],
+    "labels": {
+      "<labelname>": "<labelvalue>", ...
+    }
+  },
+  ...
+]
+```
+
+期待する応答の具体例は、
+
+```
+[
+    {
+        "targets": ["llm-gpu01:9100", "llm-gpu02:9100", "llm-gpu03:9100", "llm-gpu04:9100"],
+        "labels": {
+            "__meta_slurm_partition": "partition01",
+            "__meta_state": "active",
+            "__meta_architecture": "x86_64"
+        }
+    },
+    {
+        "targets": ["llm-gpu05:9101", "llm-gpu06:9101"],
+        "labels": {
+            "__meta_slurm_partition": "partition02",
+            "__meta_state": "active",
+            "__meta_architecture": "x86_64"
+        }
+    },
+    {
+        "targets": ["llm-gpu07:9093", "llm-gpu08:9093"],
+        "labels": {
+            "__meta_slurm_partition": "partition03",
+            "__meta_state": "active",
+            "__meta_architecture": "x86_64"
+        }
+    }
+]
+```
+
+## prometheus-slurm-sd の設定ファイル
+
+prometheus-slurm-sd の利用者が定義する設定ファイル。
+Service Discoveryに応答する"targets" キーの値を組み立てるために参照する。
+
+```yaml
+jobs:
+  - node:
+    port: 9100
+  - dcgm:
+    port: 9401
+  - process:
+    port: 9401
+  - ipmi:
+    port: 9290
+  - lustre:
+    port: 9169
+```
+
+http://<prometheus_slurm_sd>:<port>/targets?prom_job=node
