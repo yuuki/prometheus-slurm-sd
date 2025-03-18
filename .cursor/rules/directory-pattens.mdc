@@ -1,15 +1,16 @@
 ---
 description: Add a file following this directory patterns
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 # ディレクトリ配置規則
 
 ```
 .cline/		# プロンプト
 docs/		# ドキュメント
-slurm/ 		# Slurm関係
-prometheus/     # Prometheus関係
-server.go 	# GoのHTTPサーバ
+internal/       # 内部パッケージ
+ slurm/ 	# Slurm関係
+ discovery/     # Prometheus SD関係
+ config/        # 設定ファイル
 main.go		# エントリーポイント
 ```
