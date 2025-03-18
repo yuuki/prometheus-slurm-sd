@@ -6,6 +6,12 @@ A web server that fetches node information from Slurm REST API and provides comp
 
 `prometheus-slurm-sd` is a connector component that makes Slurm partition configurations available to Prometheus via service discovery. It periodically retrieves node information from Slurm clusters and exposes HTTP endpoints in Prometheus service discovery format.
 
+### Architecture
+
+![prometheus-slurm-sd architecture](docs/architecture.drawio.svg)
+
+For detailed architecture documentation, see [here](docs/architecture.md).
+
 ### Features
 
 - Retrieves node information using Slurm REST API
