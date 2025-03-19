@@ -20,11 +20,16 @@ BINARY := $(BINDIR)/$(APPNAME)
 GOFILES := $(shell find . -type f -name "*.go" -not -path "./vendor/*")
 GOPACKAGES := $(shell go list ./... | grep -v /vendor/)
 
+# Docker settings
+DOCKER_IMAGE := $(APPNAME)
+DOCKER_TAG := $(VERSION)
+DOCKER_REGISTRY :=
+
 # Color settings
 BLUE := \033[0;34m
 NC := \033[0m  # No Color
 
-.PHONY: all build test clean run fmt lint help vet
+.PHONY: all build test clean run fmt lint help vet docker docker-push
 
 all: build test
 
@@ -77,6 +82,17 @@ vet:
 	@echo "${BLUE}Vetting code...${NC}"
 	@$(GO) vet ./...
 
+# Build Docker image
+docker:
+	@echo "${BLUE}Building Docker image...${NC}"
+	@./scripts/build-docker.sh --name $(DOCKER_IMAGE) --version $(DOCKER_TAG) --registry $(DOCKER_REGISTRY)
+
+# Push Docker image
+docker-push:
+	@echo "${BLUE}Pushing Docker image...${NC}"
+	@docker push $(DOCKER_REGISTRY)$(DOCKER_IMAGE):$(DOCKER_TAG)
+	@docker push $(DOCKER_REGISTRY)$(DOCKER_IMAGE):latest
+
 # Show help
 help:
 	@echo "Available targets:"
@@ -88,4 +104,6 @@ help:
 	@echo "  ${BLUE}lint${NC}           - Run linter"
 	@echo "  ${BLUE}run${NC}            - Build and run the application"
 	@echo "  ${BLUE}vet${NC}            - Run go vet"
+	@echo "  ${BLUE}docker${NC}         - Build Docker image"
+	@echo "  ${BLUE}docker-push${NC}    - Push Docker image to registry"
 	@echo "  ${BLUE}help${NC}           - Show this help"

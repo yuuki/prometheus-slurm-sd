@@ -41,6 +41,36 @@ go build
 make build
 ```
 
+### Using Docker
+
+The application can be built and run using Docker:
+
+#### Building the Docker Image
+
+```bash
+# Build using the script
+./scripts/build-docker.sh
+
+# Or using Make
+make docker
+
+# Specify registry and version
+./scripts/build-docker.sh --registry your-registry.com --version 1.0.0
+
+# Or via Make with environment variables
+DOCKER_REGISTRY=your-registry.com/ DOCKER_TAG=1.0.0 make docker
+```
+
+#### Running with Docker
+
+```bash
+# Run the container
+docker run -p 8080:8080 -v $(pwd)/config.yaml:/app/config.yaml prometheus-slurm-sd
+
+# Or using docker-compose
+docker-compose up -d
+```
+
 ### Running Tests
 
 ```bash
@@ -63,6 +93,8 @@ make test-coverage
 | `lint` | Run linter |
 | `run` | Build and run the application |
 | `vet` | Run go vet |
+| `docker` | Build Docker image |
+| `docker-push` | Push Docker image to registry |
 
 ## Usage
 

@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  prometheus-slurm-sd:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config.yaml:/app/config.yaml
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    environment:
+      - TZ=Asia/Tokyo
+
+  # It is also possible to add a mock server for development purposes
+  # mock-slurm-api:
+  #   image: mockserver/mockserver
+  #   ports:
+  #     - "6820:1080"
+  #   environment:
+  #     - MOCKSERVER_INITIALIZATION_JSON_PATH=/config/mockserver-init.json
+  #   volumes:
+  #     - ./tests/mockserver-config:/config
