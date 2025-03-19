@@ -1,6 +1,7 @@
 .git
 
 # Build outputs
+/bin/
 /build/
 /dist/
 
@@ -17,6 +18,3 @@
 # Large data files
 *.csv
 *.xlsx
-
-# Built files
-/prometheus-slurm-sd

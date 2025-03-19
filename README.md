@@ -27,11 +27,42 @@ Download the binary from [Releases](https://github.com/yuuki/prometheus-slurm-sd
 
 ### Building from Source
 
+Clone the repository and build using Go or Make:
+
 ```bash
+# Clone the repository
 git clone https://github.com/yuuki/prometheus-slurm-sd.git
 cd prometheus-slurm-sd
+
+# Option 1: Using Go directly
 go build
+
+# Option 2: Using Make
+make build
 ```
+
+### Running Tests
+
+```bash
+# Run all tests
+make test
+
+# Run tests with coverage
+make test-coverage
+```
+
+### Available Make Targets
+
+| Target | Description |
+|--------|-------------|
+| `build` | Build the application |
+| `test` | Run tests |
+| `test-coverage` | Run tests with coverage report |
+| `clean` | Remove build artifacts |
+| `fmt` | Format code using gofmt |
+| `lint` | Run linter |
+| `run` | Build and run the application |
+| `vet` | Run go vet |
 
 ## Usage
 
