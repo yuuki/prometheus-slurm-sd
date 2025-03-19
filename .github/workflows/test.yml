@@ -1,0 +1,60 @@
+name: Go Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24.x'
+        cache: true
+
+    - name: Get dependencies
+      run: go mod download
+
+    - name: Verify dependencies
+      run: go mod verify
+
+    - name: Run tests
+      run: make test
+
+    - name: Run test with coverage
+      run: make test-coverage
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24.x'
+        cache: true
+
+    - name: Build
+      run: make build
+
+    - name: Run vet
+      run: make vet
+
+    - name: Run fmt check
+      run: |
+        make fmt
+        if [[ -n $(git status --porcelain) ]]; then
+          echo "Code is not formatted, please run 'make fmt'"
+          exit 1
+        fi
