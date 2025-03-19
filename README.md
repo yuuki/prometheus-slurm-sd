@@ -16,7 +16,6 @@ For detailed architecture documentation, see [here](docs/architecture.md).
 
 - Retrieves node information using Slurm REST API
 - Supports Prometheus [HTTP Service Discovery](https://prometheus.io/docs/prometheus/latest/http_sd/)
-- Groups nodes by partition
 - Supports multiple exporter types
 - Supports JWT authentication
 
