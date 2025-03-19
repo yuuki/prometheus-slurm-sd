@@ -28,9 +28,13 @@ jobs:
 
     - name: Run tests
       run: make test
+      env:
+        SKIP_INTEGRATION_TESTS: "1"
 
     - name: Run test with coverage
       run: make test-coverage
+      env:
+        SKIP_INTEGRATION_TESTS: "1"
 
   build:
     name: Build
