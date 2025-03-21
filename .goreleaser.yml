@@ -1,0 +1,68 @@
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
+    # you may remove this if you don't need it.
+    - go generate ./...
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+    main: ./main.go
+    binary: prometheus-slurm-sd
+
+archives:
+  - name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
+      - config.yaml
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch
+
+# You can also set up Docker image building and pushing (if necessary).
+# dockers:
+#   - image_templates:
+#     - "ghcr.io/yuuki/prometheus-slurm-sd:{{ .Version }}"
+#     - "ghcr.io/yuuki/prometheus-slurm-sd:latest"
+
+# Define the upload pipeline
+release:
+  github:
+    owner: yuuki
+    name: prometheus-slurm-sd
+  prerelease: auto
+  draft: false
+  name_template: "{{ .ProjectName }}-v{{ .Version }}"
