@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Scrape Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Scrape node_exporter targets discovered through prometheus-slurm-sd
+  - job_name: 'slurm-node-exporter'
+    http_sd_configs:
+      - url: http://prometheus-slurm-sd:8080/targets?prom_job=node
+        refresh_interval: 15s
+
+  # Scrape DCGM exporter targets discovered through prometheus-slurm-sd
+  - job_name: 'slurm-dcgm-exporter'
+    http_sd_configs:
+      - url: http://prometheus-slurm-sd:8080/targets?prom_job=dcgm
+        refresh_interval: 15s
+
+  # Scrape all targets discovered through prometheus-slurm-sd
+  - job_name: 'slurm-all'
+    http_sd_configs:
+      - url: http://prometheus-slurm-sd:8080/targets
+        refresh_interval: 15s

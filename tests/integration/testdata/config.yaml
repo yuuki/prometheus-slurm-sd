@@ -1,0 +1,18 @@
+slurm_api_endpoint: "http://slurmrestd:6820"
+slurm_api_version: "v0.0.38"
+slurm_api_username: "test"
+slurm_api_token: "test-token" # This will be replaced in the test setup
+listen_address: ":8080"
+update_interval: "30s"
+
+jobs:
+  - name: node
+    port: 9100
+  - name: dcgm
+    port: 9401
+  - name: process
+    port: 9256
+  - name: ipmi
+    port: 9290
+  - name: lustre
+    port: 9169

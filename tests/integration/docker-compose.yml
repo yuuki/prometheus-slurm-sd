@@ -1,0 +1,135 @@
+services:
+  # Slurm controller daemon
+  slurmctld:
+    build:
+      context: ./docker/slurm
+      dockerfile: Dockerfile
+    container_name: slurmctld
+    hostname: slurmctld
+    volumes:
+      - ./slurm/slurm.conf:/etc/slurm/slurm.conf:ro
+      - ./slurm/:/etc/slurm/
+      - slurm_state:/var/lib/slurm
+    environment:
+      - TZ=Asia/Tokyo
+    networks:
+      - slurm_network
+    command: ["slurmctld", "-i", "-D", "-vvv"]
+    healthcheck:
+      test: ["CMD", "scontrol", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  # Slurm compute node daemon
+  slurmd:
+    build:
+      context: ./docker/slurm
+      dockerfile: Dockerfile
+    container_name: slurmd
+    hostname: slurmd
+    volumes:
+      - ./slurm/slurm.conf:/etc/slurm/slurm.conf:ro
+      # - ./slurm/cgroup.conf:/etc/slurm/cgroup.conf:ro
+      - ./slurm/:/etc/slurm/
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    environment:
+      - TZ=Asia/Tokyo
+    networks:
+      - slurm_network
+    depends_on:
+      slurmctld:
+        condition: service_healthy
+    command: ["slurmd", "-D", "-vvv"]
+    healthcheck:
+      test: ["CMD-SHELL", "sinfo || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - seccomp:unconfined
+
+  # Slurm REST API daemon
+  slurmrestd:
+    build:
+      context: ./docker/slurm
+      dockerfile: Dockerfile
+    container_name: slurmrestd
+    hostname: slurmrestd
+    volumes:
+      - ./slurm/slurm.conf:/etc/slurm/slurm.conf:ro
+      - ./slurm/:/etc/slurm/
+    environment:
+      - TZ=Asia/Tokyo
+      - SLURM_CONF=/etc/slurm/slurm.conf
+    networks:
+      - slurm_network
+    ports:
+      - "6820:6820"
+    depends_on:
+      slurmd:
+        condition: service_healthy
+    command: ["slurmrestd", "-f", "/etc/slurm/slurm.conf", "-s", "openapi/v0.0.38", "0.0.0.0:6820"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:6820/slurm/v0.0.38/ping || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # Prometheus server
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    hostname: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    environment:
+      - TZ=Asia/Tokyo
+    networks:
+      - slurm_network
+    ports:
+      - "9090:9090"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-lifecycle
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # prometheus-slurm-sd service under test
+  prometheus-slurm-sd:
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+    container_name: prometheus-slurm-sd
+    hostname: prometheus-slurm-sd
+    volumes:
+      - ./testdata/config.yaml:/app/config.yaml:ro
+    environment:
+      - TZ=Asia/Tokyo
+    networks:
+      - slurm_network
+    ports:
+      - "8080:8080"
+    depends_on:
+      slurmrestd:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  slurm_network:
+    driver: bridge
+
+volumes:
+  slurm_state:

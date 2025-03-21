@@ -29,7 +29,7 @@ DOCKER_REGISTRY :=
 BLUE := \033[0;34m
 NC := \033[0m  # No Color
 
-.PHONY: all build test clean run fmt lint help vet docker docker-push
+.PHONY: all build test clean run fmt lint help vet docker docker-push test-docker-compose docker-integration-env docker-integration-env-clean docker-integration-build
 
 all: build test
 
@@ -50,6 +50,26 @@ test:
 test-coverage:
 	@echo "${BLUE}Running tests with coverage...${NC}"
 	$(GOTEST) -v -cover ./...
+
+# Build Docker images for integration tests
+docker-integration-build:
+	@echo "${BLUE}Building Docker images for integration tests...${NC}"
+	@cd tests/integration && COMPOSE_BAKE=true docker-compose build
+
+# Run Docker Compose integration tests
+test-docker-compose:
+	@echo "${BLUE}Running Docker Compose integration tests...${NC}"
+	@$(GOTEST) -v -run TestWithDockerCompose ./... -count=1
+
+# Start Docker Compose integration environment
+docker-integration-env:
+	@echo "${BLUE}Starting Docker Compose integration environment...${NC}"
+	@./tests/scripts/setup-integration.sh
+
+# Clean up Docker Compose integration environment
+docker-integration-env-clean:
+	@echo "${BLUE}Cleaning up Docker Compose integration environment...${NC}"
+	@./tests/scripts/cleanup-integration.sh
 
 # Clean build artifacts
 clean:
@@ -99,6 +119,10 @@ help:
 	@echo "  ${BLUE}build${NC}          - Build the application"
 	@echo "  ${BLUE}test${NC}           - Run tests"
 	@echo "  ${BLUE}test-coverage${NC}  - Run tests with coverage report"
+	@echo "  ${BLUE}docker-integration-build${NC} - Build Docker images for integration tests"
+	@echo "  ${BLUE}test-docker-compose${NC} - Run Docker Compose integration tests"
+	@echo "  ${BLUE}docker-integration-env${NC} - Start Docker Compose integration environment"
+	@echo "  ${BLUE}docker-integration-env-clean${NC} - Clean up Docker Compose integration environment"
 	@echo "  ${BLUE}clean${NC}          - Remove build artifacts"
 	@echo "  ${BLUE}fmt${NC}            - Format code using gofmt"
 	@echo "  ${BLUE}lint${NC}           - Run linter"
