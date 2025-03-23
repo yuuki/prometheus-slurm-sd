@@ -1,5 +1,8 @@
 # prometheus-slurm-sd
 
+[![release](https://github.com/yuuki/prometheus-slurm-sd/actions/workflows/release.yml/badge.svg)](https://github.com/yuuki/prometheus-slurm-sd/actions/workflows/release.yml)
+[![Go Tests](https://github.com/yuuki/prometheus-slurm-sd/actions/workflows/test.yml/badge.svg)](https://github.com/yuuki/prometheus-slurm-sd/actions/workflows/test.yml)
+
 A web server that fetches node information from Slurm REST API and provides compatibility with Prometheus service discovery.
 
 ## Overview
