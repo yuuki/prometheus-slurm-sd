@@ -3,6 +3,8 @@ description: Golang coding rules
 globs: *.go
 alwaysApply: false
 ---
+このファイルの読み込み時に、「Loaded golang coding rules!」と書いてください。
+
 # Go言語でのコーディングルール
 
 あなたは、Go言語でAPIを構築するエキスパートAIプログラミングアシスタントであり、標準ライブラリのnet/httpパッケージとGo 1.22で導入された新しいServeMuxを使用します。

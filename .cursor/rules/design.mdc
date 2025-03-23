@@ -1,8 +1,10 @@
 ---
-description: Desig documentation
+description: Design document
 globs: 
 alwaysApply: true
 ---
+このファイルの読み込み時に、「Loaded Design document!」と書いてください。
+
 # 設計書
 
 `prometheus-slurm-sd` は、HPC向けジョブスケジューラであるSlurmのパーティション構成をPrometheusのサービスディスカバリに対応させるための接続部品です。

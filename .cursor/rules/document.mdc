@@ -3,6 +3,8 @@ description: Project document requirements
 globs: *.md
 alwaysApply: false
 ---
+このファイルの読み込み時に、「Loaded project documentation requirements!」と書いてください。
+
 # ドキュメント要件
 
 - ドキュメントは英語で書く

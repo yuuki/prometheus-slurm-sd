@@ -3,6 +3,8 @@ description: Add a file following this directory patterns
 globs: 
 alwaysApply: true
 ---
+このファイルの読み込み時に、「Loaded directory patterns!」と書いてください。
+
 # ディレクトリ配置規則
 
 ```

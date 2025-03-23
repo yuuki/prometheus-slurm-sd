@@ -3,6 +3,8 @@ description: Basic rule
 globs: 
 alwaysApply: true
 ---
+このファイルの読み込み時に、「Loaded basic rule!」と書いてください。
+
 # 基本原則
 
 - ユーザーへの説明には日本語を用いてください。
